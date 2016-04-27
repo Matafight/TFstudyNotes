@@ -142,4 +142,69 @@ h_pool1 = max_pool_2x2(h_conv1)
 
 第二个卷积层：
 
+```python
+#因为上一层输出的channels 变成32 了，
+W_conv2 = weight_variable([5, 5, 32, 64])
+b_conv2 = bias_variable([64])
+
+h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+#print (h_conv2.get_shape()) # => (40000, 14,14, 64)
+h_pool2 = max_pool_2x2(h_conv2)
+#print (h_pool2.get_shape()) # => (40000, 7, 7, 64)
+```
+第二个卷积层之后使用全连通网络，使用了1024个神经元
+
+```python
+# densely connected layer
+W_fc1 = weight_variable([7 * 7 * 64, 1024])
+b_fc1 = bias_variable([1024])
+
+# (40000, 7, 7, 64) => (40000, 3136)
+h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
+
+h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+#print (h_fc1.get_shape()) # => (40000, 1024)
+```
+为了防止过拟合，可以对全连通网络的输出执行dropout操作，dropout可以看作是一种正则化。
+
+```python
+# dropout
+keep_prob = tf.placeholder('float')
+h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+#keep_prob 同 x 和 y_一样也是placeholder 类型，需要使用参数feed_dict来传递keep_prob的值 
+```
+最后还有一个SoftMax层，节点个数是类的个数
+
+```python
+
+W_fc2=Weight_variable([1024,10])
+b_fc2 = bias_variable([10])
+y=tf.nn.softmax(tf.matmul(h_fc1,W_fc2)+b_fc2)
+#shape [40000,10]
+```
+下面定义损失函数 cross_entropy:
+
+```python
+#cost function
+cross_entropy = -tf.reduce_sum(y_*tf.log(y))
+#optimization function
+train_step = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cross_entropy)
+#LEARNING_RATE is a constant you need to define
+```
+评估准确率
+
+```python
+correction_prediction = tf.equal(y_,y)
+accuracy = tf.reduce_mean(tf.cast(correction_prediction,'float'))
+#可以把accuracy 看作整个CNN网络的一部分，可以通过accuracy.eval()方法来求accuarcy的值，不过需要通过feed_dict传入必要的参数如：x y_ 和drop_out
+```
+预测：
+
+```python
+predict = tf.argmax(y,1)
+```
+
+主要上面我们只是定义了一个TensorFlow的图结构，还并没有开始运行
+
+因为CNN的训练数据集较大，所有使用了随机梯度下降的方法来训练，每次从样本中选取一个大小为BATCH_SIZE的样本来训练。
 
