@@ -33,10 +33,38 @@ b = tf.Variable(tf.zeros([10]))
 ```
 Variabels 一般用来表示在网络中需要更新的参数，一般都需要初始化
 
+```python
+#初始化网络中所有变量
+sess.run(tf.initialize_all_variables())
+```
+
 3）Predicted Class and Cost Function
 
 ```python
 y = tf.nn.softmax(tf.matmul(x,W) + b)
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 ```
+[tf.nn.softmax](https://www.tensorflow.org/versions/r0.8/api_docs/python/nn.html#softmax) 的参数的大小为[BATCH_SIZE,NUM_CLASSES]，结果形式可参见上述API-DOC。
+[tf.reduce_mean](https://www.tensorflow.org/versions/r0.8/api_docs/python/math_ops.html#reduce_mean计算数组在指定维度的均值
+[tf.reduce_sum](https://www.tensorflow.org/versions/r0.8/api_docs/python/math_ops.html#reduce_sum)与reduce_mean同理。不过cross_entropy 应该直接等于 -tf.reduce_sum(y_ * tf.log(y)),再加一个tf.reduce_mean 也不影响结果。
+
+4)Train the Model
+
+```python
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+for i in range(1000):
+    batch = mnist.train.next_batch(50)
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+```
+
+注意train_step.run中的参数feed_dict ,这里以字典的形式传入了两个placeholder的值。
+
+5）Evaluate The Model
+
+```python
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1)
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+```
+注意最后一行的accuracy.eval()一般等价于tf.get_default_session().run(accuracy),即使用默认的Session运行，但是当有多个Session时（可以看作多个网络）一般需指定使用的Session即使用sess.run()的形式。[参考](https://www.tensorflow.org/versions/r0.8/resources/faq.html#contents)。accuracy.eval()表示在给定参数feed_dict 的情况下执行完整个图之后返回所要求的值accuracy，
 
