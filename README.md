@@ -5,7 +5,7 @@
 #二.Instance
 TensorFlow官网给定的是一个利用CNN训练手写字符数据集（MNIST）的[入门教程](https://www.tensorflow.org/versions/r0.8/tutorials/mnist/pros/index.html)，下面我将结合这个入门教程和[Kaggle](https://www.kaggle.com/c/digit-recognizer)中的字符识别竞赛介绍TensorFlow利用CNN在MNIST数据集上的具体应用
 
-##Build a softmax regression Mode
+##建立一个Softmax 回归模型
 1.Start Session
 ```python
 #load tensorflow assume the tensorflow packages has been installed on your pc
@@ -45,7 +45,7 @@ y = tf.nn.softmax(tf.matmul(x,W) + b)
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 ```
 [tf.nn.softmax](https://www.tensorflow.org/versions/r0.8/api_docs/python/nn.html#softmax) 的参数的大小为[BATCH_SIZE,NUM_CLASSES]，结果形式可参见上述API-DOC。
-[tf.reduce_mean](https://www.tensorflow.org/versions/r0.8/api_docs/python/math_ops.html#reduce_mean计算数组在指定维度的均值
+[tf.reduce_mean](https://www.tensorflow.org/versions/r0.8/api_docs/python/math_ops.html#reduce_mean)计算数组在指定维度的均值
 [tf.reduce_sum](https://www.tensorflow.org/versions/r0.8/api_docs/python/math_ops.html#reduce_sum)与reduce_mean同理。不过cross_entropy 应该直接等于 -tf.reduce_sum(y_ * tf.log(y)),再加一个tf.reduce_mean 也不影响结果。
 
 4)Train the Model
@@ -67,4 +67,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 print(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 ```
 注意最后一行的accuracy.eval()一般等价于tf.get_default_session().run(accuracy),即使用默认的Session运行，但是当有多个Session时（可以看作多个网络）一般需指定使用的Session即使用sess.run()的形式。[参考](https://www.tensorflow.org/versions/r0.8/resources/faq.html#contents)。accuracy.eval()表示在给定参数feed_dict 的情况下执行完整个图之后返回所要求的值accuracy，
+
+
+##建立一个CNN模型
 
